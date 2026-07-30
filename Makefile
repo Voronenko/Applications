@@ -9,6 +9,7 @@ export GITHUB_TOKEN
 APPS := \
 	aider-desk \
 	arduino \
+	buzz \
 	dbgate \
 	logseq \
 	mattermost \
