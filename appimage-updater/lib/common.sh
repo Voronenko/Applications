@@ -194,8 +194,11 @@ run_updater() {
     fi
     echo ""
 
-    read -r -p "Install $latest_version? [Y/n] " answer
-    if [[ ! "$answer" =~ ^[Yy]$|^$ ]]; then
+    # Require explicit Y/y. Empty input (non-TTY / EOF / just Enter) skips
+    # instead of installing -- safer when stdin isn't interactive. (ponytail:
+    # was [Y/n] with empty=consent; empty=skip prevents accidental reinstalls.)
+    read -r -p "Install $latest_version? [y/N] " answer
+    if [[ ! "$answer" =~ ^[Yy]$ ]]; then
         echo "Skipping..."
         return 0
     fi
