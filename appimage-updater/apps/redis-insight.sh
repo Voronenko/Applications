@@ -22,7 +22,11 @@ get_latest_version() {
 }
 
 get_download_url() {
-    github_download_url "$REPO" "$1" "linux.*AppImage"
+    # ponytail: RedisInsight's release asset list orders "linux-arm64.AppImage"
+    # BEFORE "linux-x86_64.AppImage"; the generic "linux.*AppImage" filter +
+    # head -1 in github_download_url picked the ARM64 build on x86_64 hosts
+    # (confirmed: Redis-Insight-linux-arm64.AppImage got installed). Pin x86_64.
+    github_download_url "$REPO" "$1" "linux-x86_64.*AppImage"
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -7,8 +7,13 @@ extract_version() {
     basename "$1" | sed -E 's/VeraCrypt-([0-9.]+)-x86_64_[a-f0-9]+\.AppImage/\1/'
 }
 
+# veracrypt/VeraCrypt tags releases as "VeraCrypt_X.Y.Z". Strip the prefix so
+# the latest version compares equal to the installed "X.Y.Z"; re-add it for the
+# GitHub tag lookup so the download URL resolves. (ponytail: assumes
+# veracrypt/VeraCrypt keeps the VeraCrypt_ tag scheme; if they switch, update
+# both lines.)
 get_latest_version() {
-    github_latest "$REPO" | sed 's/^VeraCrypt_//'
+    github_latest "$REPO" | sed -E 's/^VeraCrypt_//'
 }
 
 get_download_url() {

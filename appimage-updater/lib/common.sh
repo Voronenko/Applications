@@ -62,7 +62,10 @@ print_banner() {
 
 find_installed() {
     local file
-    file=$(find "$APPIMAGE_DIR" -maxdepth 1 -name "$FILE_PATTERN" 2>/dev/null | sort | head -1)
+    # ponytail: sort -V | tail -1 picks the highest version (newest match),
+    # not the lexicographically-first (oldest) -- matters when leftovers/partial
+    # cleanups leave multiple FILE_PATTERN matches in APPIMAGE_DIR.
+    file=$(find "$APPIMAGE_DIR" -maxdepth 1 -name "$FILE_PATTERN" 2>/dev/null | sort -V | tail -1)
     if [ -z "$file" ]; then
         return 1
     fi
@@ -195,12 +198,20 @@ run_updater() {
     echo ""
 
     # Require explicit Y/y. Empty input (non-TTY / EOF / just Enter) skips
-    # instead of installing -- safer when stdin isn't interactive. (ponytail:
-    # was [Y/n] with empty=consent; empty=skip prevents accidental reinstalls.)
-    read -r -p "Install $latest_version? [y/N] " answer
-    if [[ ! "$answer" =~ ^[Yy]$ ]]; then
-        echo "Skipping..."
-        return 0
+    # instead of installing. ASSUME_YES=1 restores unattended/automation use
+    # (cron, fresh-machine bootstrap) without prompting. (ponytail: was [Y/n]
+    # with empty=consent; empty=skip prevents accidental reinstalls.)
+    if [ "${ASSUME_YES:-}" = "1" ]; then
+        answer="y"
+        echo "Install $latest_version? [y/N] ASSUME_YES=1 -> yes"
+    else
+        # ponytail: || answer="" swallows read's nonzero on EOF so set -e
+        # doesn't abort -- empty/EOF then falls through to the skip branch.
+        read -r -p "Install $latest_version? [y/N] " answer || answer=""
+        if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+            echo "Skipping..."
+            return 0
+        fi
     fi
 
     download_and_install "$installed_file" "$latest_raw"
